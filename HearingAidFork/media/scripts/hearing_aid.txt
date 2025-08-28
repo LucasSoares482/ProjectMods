@@ -85,7 +85,24 @@ module hearing_aid
 		BrokenHearingAid/InefficientHearingAid/EfficientHearingAid/BoostedHearingAid,
 		keep [Recipe.GetItemTypes.Screwdriver],
 
-		Result:ElectronicsScrap,
+		Result:ElectronicsScrap=2,
+		Time:30.0,
+		OnTest:Recipe.OnTest.DismantleElectronics,
+		OnCreate:HearingAidManager.DismantleHearingAid,
+		OnGiveXP:Recipe.OnGiveXP.DismantleElectronics,
+		Category:Electrical,
+		AnimNode:Disassemble,
+		Prop1:Screwdriver,
+		Sound:Dismantle,
+	}
+
+	recipe Craft Hearing Aid
+	{
+		ElectronicsScrap=2,
+		Earbuds/Headphones,
+		keep [Recipe.GetItemTypes.Screwdriver],
+
+		Result:BrokenHearingAid,
 		Time:30.0,
 		OnTest:Recipe.OnTest.DismantleElectronics,
 		OnCreate:HearingAidManager.DismantleHearingAid,
@@ -99,10 +116,10 @@ module hearing_aid
 	recipe Repair Hearing Aid
 	{
 		BrokenHearingAid,
-		ElectronicsScrap,
+		ElectronicsScrap=2,
 		keep [Recipe.GetItemTypes.Screwdriver],
 
-		SkillRequired:Electricity=2,
+		SkillRequired:Electricity=1,
 		Result:InefficientHearingAid,
 		Time:60.0,
 		OnGiveXP:Recipe.OnGiveXP.DismantleElectronics,
@@ -115,10 +132,10 @@ module hearing_aid
 	{
 		InefficientHearingAid,
 		ElectronicsScrap=2,
-		Aluminum,
+		ElectricWire,
 		keep [Recipe.GetItemTypes.Screwdriver],
 
-		SkillRequired:Electricity=4,
+		SkillRequired:Electricity=2,
 		Result:EfficientHearingAid,
 		Time:80.0,
 		OnCreate:HearingAidManager.DismantleHearingAid,
@@ -131,14 +148,12 @@ module hearing_aid
 	recipe Boost Hearing Aid
 	{
 		EfficientHearingAid,
-		ElectronicsScrap=4,
-		Earbuds,
+		ElectronicsScrap=2,
 		Amplifier,
-		Radio.ElectricWire,
+		ElectricWire,
 		keep [Recipe.GetItemTypes.Screwdriver],
-		keep Scalpel,
 
-		SkillRequired:Electricity=8,
+		SkillRequired:Electricity=3,
 		Result:BoostedHearingAid,
 		Time:120.0,
 		OnTest:HearingAidManager.IsBoostValid,
