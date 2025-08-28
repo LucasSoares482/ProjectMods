@@ -93,24 +93,22 @@ module hearing_aid
 		Category:Electrical,
 		AnimNode:Disassemble,
 		Prop1:Screwdriver,
-		Sound:Dismantle,
+		Sound:Disassemble,
 	}
 
 	recipe Craft Hearing Aid
 	{
 		ElectronicsScrap=2,
-		Earbuds/Headphones,
+		Headphones/Earbuds,
 		keep [Recipe.GetItemTypes.Screwdriver],
 
 		Result:BrokenHearingAid,
-		Time:30.0,
-		OnTest:Recipe.OnTest.DismantleElectronics,
-		OnCreate:HearingAidManager.DismantleHearingAid,
+		Time:60.0,
 		OnGiveXP:Recipe.OnGiveXP.DismantleElectronics,
 		Category:Electrical,
 		AnimNode:Disassemble,
 		Prop1:Screwdriver,
-		Sound:Dismantle,
+		Sound:Disassemble,
 	}
 
 	recipe Repair Hearing Aid
@@ -126,8 +124,9 @@ module hearing_aid
 		Category:Electrical,
 		AnimNode:Disassemble,
 		Prop1:Screwdriver,
+		Sound:Disassemble,
 	}
-
+	
 	recipe Optimize Hearing Aid
 	{
 		InefficientHearingAid,
@@ -143,6 +142,7 @@ module hearing_aid
 		Category:Electrical,
 		AnimNode:Disassemble,
 		Prop1:Screwdriver,
+		Sound:Disassemble,
 	}
 
 	recipe Boost Hearing Aid
@@ -156,11 +156,11 @@ module hearing_aid
 		SkillRequired:Electricity=3,
 		Result:BoostedHearingAid,
 		Time:120.0,
-		OnTest:HearingAidManager.IsBoostValid,
 		OnCreate:HearingAidManager.DismantleHearingAid,
 		OnGiveXP:Recipe.OnGiveXP.DismantleElectronics,
 		Category:Electrical,
 		AnimNode:Disassemble,
 		Prop1:Screwdriver,
+		Sound:Disassemble,
 	}
 }
