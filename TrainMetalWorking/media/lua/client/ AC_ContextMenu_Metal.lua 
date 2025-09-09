@@ -1,0 +1,16 @@
+require "AutoCarpMetal"
+
+function ISWorldObjectContextMenu_OnFillWorldObjectContextMenu(player, context, worldobjects, test)
+	local inventory = getPlayer():getInventory();
+	print(player, inventory, context, worldobjects)
+	print(AutoCarpMetal.dir);
+	local autocarp_btn = context:addOption("Train MetalWorking", worldobjects, AutoCarpMetal.checkForItems);
+	local tooltip = ISInventoryPaneContextMenu.addToolTip();
+	tooltip.description = getText("Use tools and metal to train metalworking") .. " <LINE> <LINE> <INDENT:10> "
+	tooltip.description = tooltip.description .. getText("Requires: ") .. " <LINE> <INDENT:30> "  
+	tooltip.description = tooltip.description .. getText("BlowTorch") .. " <LINE> <INDENT:30> "
+	tooltip.description = tooltip.description .. getText("Hammer or Screwdriver") .. " <LINE> <INDENT:30> "
+	tooltip.description = tooltip.description .. getText("Metal Pipes, Sheets or Empty Cans")
+	autocarp_btn.toolTip = tooltip;
+end
+Events.OnFillWorldObjectContextMenu.Add(ISWorldObjectContextMenu_OnFillWorldObjectContextMenu);

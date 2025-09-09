@@ -1,0 +1,151 @@
+require "TimedActions/ISBaseTimedAction"
+
+ISWorkMetal = ISBaseTimedAction:derive("ISWorkMetal");
+
+function ISWorkMetal:isValid()
+	return self.mat_basenames == nil or self.tool_types == nil
+end
+
+function ISWorkMetal:update()
+	self.character:faceThisObject(self.target);
+	
+	-- Verifica se é ScrapMetal ou UnusableMetal para usar som e animação diferentes
+	local isScrapMetal = self.item:getFullType() == "Base.ScrapMetal";
+	local isUnusableMetal = self.item:getFullType() == "Base.UnusableMetal";
+	
+	if isScrapMetal or isUnusableMetal then
+		-- Usa som e animação diferente para ScrapMetal e UnusableMetal
+		if self.stage == 0 then
+			if not self.emitter:isPlaying("OpenCannedFood") then
+				self.sound = self.emitter:playSound("OpenCannedFood");
+			end
+			self:setActionAnim("Disassemble");
+		elseif self.stage == 1 then	
+			self.emitter:stopSoundByName("OpenCannedFood");
+			if not self.emitter:isPlaying(self.equippedsnd) then
+				self.sound = self.emitter:playSound(self.equippedsnd);
+			end
+		end
+	else
+		-- Metais normais usam PZ_Fire e BlowTorchFloor
+		if self.stage == 0 then
+			if not self.emitter:isPlaying("PZ_Fire") then
+				self.sound = self.emitter:playSound("PZ_Fire");
+			end
+		elseif self.stage == 1 then	
+			self.emitter:stopSoundByName("PZ_Fire");
+			if not self.emitter:isPlaying(self.equippedsnd) then
+				self.sound = self.emitter:playSound(self.equippedsnd);
+			end
+		end
+	end
+	
+	if #self.tools > 1 then
+		if self.action:getJobDelta() > 0.6 and self.stage == 0 then
+			local primary = self.character:getPrimaryHandItem();
+			self:setOverrideHandModels(primary, nil)
+			if primary:getTags():contains("Hammer") then
+				self.equippedsnd = "Hammering";
+				self:setActionAnim("BuildLow");			
+				self.sound = self.emitter:playSound("Hammering");
+			elseif primary:getTags():contains("Screwdriver") then
+				self.equippedsnd = "Screwdriver";
+				self:setActionAnim("Craft");
+				self.sound = self.emitter:playSound("Screwdriver");			
+			end		
+			self.stage = 1;
+		end
+	end
+end
+
+function ISWorkMetal:start()
+	if self.target == nil and self.item ~= nil then
+		self.target = self.item:getWorldItem();		
+	end
+
+	-- Verifica se é ScrapMetal ou UnusableMetal para usar animação diferente
+	local isScrapMetal = self.item:getFullType() == "Base.ScrapMetal";
+	local isUnusableMetal = self.item:getFullType() == "Base.UnusableMetal";
+	
+	if isScrapMetal or isUnusableMetal then
+		self:setActionAnim("Disassemble");
+		self.sound = self.emitter:playSound("OpenCannedFood");
+	else
+		self:setActionAnim("BlowTorchFloor");
+		self.sound = self.emitter:playSound("PZ_Fire");
+	end
+	
+	self:setOverrideHandModels(self.tools[1], nil)
+end
+
+function ISWorkMetal:stop()
+	self.emitter:stopAll();
+    ISBaseTimedAction.stop(self);	
+end
+
+function ISWorkMetal:perform()
+	local rand = ZombRand(101);
+	if rand < self.breakchance then
+		self.target:removeFromWorld();
+		local sq = self.target:getSquare()
+		sq:transmitRemoveItemFromSquare(self.target);
+		sq:removeWorldObject(self.target);
+					
+		if self.floorcont ~= nil then 
+			self.floorcont:Remove(self.item); 
+		end
+		
+		if self.item:getFullType() == "Base.ScrapMetal" then
+			-- ScrapMetal vira UnusableMetal e some
+			local _item = sq:AddWorldInventoryItem("Base.UnusableMetal", 0, 0, 0);
+			_item:getWorldItem():addToWorld();
+			self.floorcont:AddItem(_item);
+		elseif self.item:getFullType() == "Base.UnusableMetal" then
+			-- UnusableMetal some completamente
+			-- Não cria nenhum item novo
+		else
+			-- Outros metais viram ScrapMetal
+			local _item = sq:AddWorldInventoryItem("Base.ScrapMetal", 0, 0, 0);
+			_item:getWorldItem():addToWorld();
+			self.floorcont:AddItem(_item);
+		end
+	end
+
+	-- XP balanceado para 3 processos
+	local xpMultiplier = 3.5; -- Multiplicador para compensar os 3 processos
+	local baseXP = 25 + (self.character:getPerkLevel(Perks.MetalWelding) * 4);
+	local randXP = ZombRand(baseXP * 0.8, baseXP * 1.2);
+	local xptotal = randXP * xpMultiplier;
+	
+	self.character:getXp():AddXP(Perks.MetalWelding, xptotal);
+	
+	self.emitter:stopAll();
+	ISBaseTimedAction.perform(self);
+	self.parentscript:checkForItems(self.character, nil, self.worldobjs, true);
+end
+
+function ISWorkMetal:new(parentscript, item, target, floorcont, character, baseTime, mat_basenames, tool_types, tools, worldobjs)
+    local o = {}
+    setmetatable(o, self);
+    self.__index = self;
+	o.parentscript = parentscript;
+	o.item = item;
+	o.target = target;
+	o.character = character;
+	o.inventory = character:getInventory();
+	o.emitter = character:getEmitter();
+	o.mat_basenames = mat_basenames;
+	o.tool_types = tool_types;
+	o.tools = tools;
+	o.worldobjs = worldobjs;
+	o.floorcont = floorcont;
+	o.equippedsnd = nil;
+	o.tool1 = o.inventory:contains(tool_types[1]);
+	o.tool2 = o.inventory:contains(tool_types[2]);	
+	o.breakchance = (85 - (character:getPerkLevel(Perks.MetalWelding) * 7));
+	o.stage = 0;
+    o.stopOnWalk = true;
+    o.stopOnRun = false;
+    o.maxTime = baseTime;
+    return o;
+end

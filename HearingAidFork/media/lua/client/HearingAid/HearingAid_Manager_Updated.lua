@@ -1,140 +1,370 @@
--- Código atualizado do manager para usar as configurações sandbox
+local versionNumber = 1.0;
 
-local HearingAidSandbox = require("HearingAid_Sandbox_Logic");
-
--- Função atualizada para ativar hearing aid usando configurações sandbox
-local function onActivateHearingAid(_, playerID, item, manager)
-    local player = getPlayer(playerID);
-    HearingAidManager.activeManagers[buildActiveIndex(player)] = manager;
-    
-    local modData = item:getModData();
-    local hearingAidType = item:getFullType();
-    
-    -- Limpar dados anteriores
-    modData[HA_CHANGED_TRAITS] = nil;
-    
-    -- Verificar se o jogador pode usar este tipo de hearing aid
-    if not HearingAidSandbox.canUseHearingAid(player, hearingAidType) then
-        -- Mostrar mensagem de erro se necessário
-        player:Say(getText("IGUI_HearingAid_CannotUse") or "You cannot use this hearing aid with your current hearing level.");
-        return;
-    end
-    
-    -- Aplicar o efeito baseado nas configurações sandbox
-    HearingAidSandbox.applyHearingAidEffect(player, hearingAidType, modData);
-    
-    -- Armazenar playerID para verificação posterior
-    if modData[HA_CHANGED_TRAITS] then
-        modData[HA_CHANGED_TRAITS][3] = playerID;
-    end
+if HearingAidManager then
+	if HearingAidManager.versionNumber >= versionNumber then
+		return;
+	end
 end
 
--- Função atualizada para desativar hearing aid
-local function onDeactivateHearingAid(_, playerID, item, manager)
-    local player = getPlayer(playerID);
-    HearingAidManager.activeManagers[buildActiveIndex(player)] = nil;
-    
-    local modData = item:getModData();
-    local changedTraits = modData[HA_CHANGED_TRAITS];
-    
-    if changedTraits ~= nil then
-        local removedTrait, addedTrait, activePlayerID = changedTraits[1], changedTraits[2], changedTraits[3];
-        local activePlayer = getPlayer(activePlayerID);
-        
-        if player ~= activePlayer then
-            -- Possível erro se jogador morrer enquanto usando o hearing aid
-            error("HearingAid for " .. buildActiveIndex(activePlayer) .. " deactivated on " .. buildActiveIndex(player));
-        end
-        
-        -- Reverter efeito usando sistema sandbox
-        HearingAidSandbox.revertHearingAidEffect(activePlayer, modData);
-    end
+HearingAidManager = ISUIElement:derive("HearingAidManager");
+HearingAidManager.versionNumber = versionNumber;
+HearingAidManager.managers = {};
+HearingAidManager.activeManagers = {};
+
+local HA_WORKING_FULL_TYPES = {"hearing_aid.InefficientHearingAid", "hearing_aid.EfficientHearingAid", "hearing_aid.BoostedHearingAid"}
+local HA_CHANGED_TRAITS = "hearing_aid_changed_traits";
+local HA_ACTIVE = "hearing_aid_battery_active";
+local HA_ACTIVE_TIME = "hearing_aid_battery_active_time";
+local HA_INITIALIZED = "hearing_aid_battery_initialized";
+local HA_BATTERY_MANAGER_VERSION = "hearing_aid_battery_version";
+local HA_HAS_BATTERY = "hearing_aid_has_battery";
+local HA_BATTERY_LEVEL = "hearing_aid_battery_level";
+local HA_BATTERY_POWER_LEVEL = "hearing_aid_power_level";
+local HA_HAS_ALTERNATE_POWER = "hearing_aid_has_alternate_power";
+
+local function isWorkingHearingAid(item)
+	local fullType = item:getFullType();
+	for _, workingType in ipairs(HA_WORKING_FULL_TYPES) do
+		if fullType == workingType then
+			return true;
+		end
+	end
+	return false;
 end
 
--- Função quando bateria acaba
-local function onBatteryDead(_, playerID, item, manager)
-    onDeactivateHearingAid(_, playerID, item, manager);
+local function buildActiveIndex(player)
+    return player:getDisplayName() .. player:getPlayerNum()
 end
 
--- Menu de contexto atualizado para mostrar informações sobre efeitos
+local function getItemID(item)
+	return item:getType() .. item:getID();
+end
+
+local function initializeHearingAid(itemID, playerID, item)
+	local runTime = 400;
+	if item:getFullType() == "hearing_aid.InefficientHearingAid" then
+		runTime = 48;
+	end
+	local hearingAid = {
+		playerID = playerID,
+		item = item,
+		runTime = runTime,
+		target = nil,
+		adjustablePower = false,
+		itemWeightNoBattery = 0.01,
+		itemWeightWithBattery = 0.11,
+	};
+	HearingAidManager.managers[itemID] = HearingAidManager:new(hearingAid);
+	HearingAidManager.managers[itemID]:initialize();
+end
+
 local function createMenuHearingAid(playerID, context, items)
-    for i, e in ipairs(items) do
+	for i, e in ipairs(items) do
         local item;
-        if instanceof(e, "InventoryItem") then 
-            item = e; 
-        else 
-            item = e.items[1]; 
-        end;
+        if instanceof(e, "InventoryItem") then item = e; else item = e.items[1]; end;
 
         if isWorkingHearingAid(item) then
             local itemID = getItemID(item);
             if not HearingAidManager.managers[itemID] then
                 initializeHearingAid(itemID, playerID, item);
             end
-            
             if item:isEquipped() then
-                local player = getPlayer(playerID);
-                local hearingAidType = item:getFullType();
-                
-                -- Adicionar informações sobre efeito atual
-                local effect = HearingAidSandbox.getHearingAidEffect(player, hearingAidType);
-                local effectText = string.format("Current: %s → Target: %s", effect.currentName, effect.targetName);
-                
-                local effectOption = context:addOption(effectText);
-                effectOption.notAvailable = true; -- Apenas informativo
-                
-                -- Menu normal do hearing aid
-                HearingAidManager.managers[itemID]:doActionMenu(context);
-            end
-            
+				HearingAidManager.managers[itemID]:doActionMenu(context);
+			end
             HearingAidManager.managers[itemID]:doBatteryMenu(context);
         end
     end
 end
 
--- Função de validação atualizada para verificar configurações
 local function isValid(_, playerID, item)
-    if getPlayer(playerID) and item then
-        local player = getPlayer(playerID);
-        local hearingAidType = item:getFullType();
-        
-        -- Verificar se pode usar o hearing aid
-        if not HearingAidSandbox.canUseHearingAid(player, hearingAidType) then
-            return false;
-        end
-        
-        return item:isEquipped();
-    else
-        return false;
-    end
+	if getPlayer(playerID) and item then
+		return item:isEquipped();
+	else
+		return nil;
+	end
+	return false;
 end
 
--- Função para mostrar tooltip com informações de configuração
-local function addHearingAidTooltip(item, tooltip)
-    if isWorkingHearingAid(item) then
-        local hearingAidType = item:getFullType();
-        local player = getPlayer():getDisplayName() and getPlayer() or nil;
-        
-        if player then
-            local effect = HearingAidSandbox.getHearingAidEffect(player, hearingAidType);
-            
-            tooltip:addLine(" ");
-            tooltip:addLine("Effect: " .. effect.currentName .. " → " .. effect.targetName);
-            
-            if not HearingAidSandbox.canUseHearingAid(player, hearingAidType) then
-                tooltip:addLineRed("Cannot use with current hearing level");
-            end
-        end
-    end
+local function onActivate(_, playerID, item, manager)
+	local player = getPlayer(playerID);
+	HearingAidManager.activeManagers[buildActiveIndex(player)] = manager;
+	
+	local isInefficient = item:getFullType() == "hearing_aid.InefficientHearingAid";
+	local isEfficient = item:getFullType() == "hearing_aid.EfficientHearingAid";
+	local isBoosted = item:getFullType() == "hearing_aid.BoostedHearingAid";
+    local traits = player:getTraits();
+	local modData = item:getModData();
+	modData[HA_CHANGED_TRAITS] = nil;
+	
+    if traits:contains("Deaf") then
+		if isInefficient then
+			-- Inefficient: Deaf -> Hard of Hearing
+			traits:remove("Deaf");
+			traits:add("HardOfHearing");
+			modData[HA_CHANGED_TRAITS] = {"Deaf", "HardOfHearing"};
+		elseif isEfficient then
+			-- Efficient: Deaf -> cured (no trait)
+			traits:remove("Deaf");
+			modData[HA_CHANGED_TRAITS] = {"Deaf", ""};
+		elseif isBoosted then
+			-- Boosted: Deaf -> Keen Hearing
+			traits:remove("Deaf");
+			traits:add("KeenHearing");
+			modData[HA_CHANGED_TRAITS] = {"Deaf", "KeenHearing"};
+		end
+	elseif traits:contains("HardOfHearing") then
+		if isInefficient then
+			-- Inefficient: Hard of Hearing -> cured (no trait)
+			traits:remove("HardOfHearing");
+			modData[HA_CHANGED_TRAITS] = {"HardOfHearing", ""};
+		elseif isEfficient then
+			-- Efficient: Hard of Hearing -> Keen Hearing
+			traits:remove("HardOfHearing");
+			traits:add("KeenHearing");
+			modData[HA_CHANGED_TRAITS] = {"HardOfHearing", "KeenHearing"};
+		elseif isBoosted then
+			-- Boosted: Hard of Hearing -> Keen Hearing
+			traits:remove("HardOfHearing");
+			traits:add("KeenHearing");
+			modData[HA_CHANGED_TRAITS] = {"HardOfHearing", "KeenHearing"};
+		end
+	else
+		-- Normal hearing or already has Keen Hearing
+		if isEfficient or isBoosted then
+			-- Efficient/Boosted: normal -> Keen Hearing (if not already)
+			if not traits:contains("KeenHearing") then
+				traits:add("KeenHearing");
+				modData[HA_CHANGED_TRAITS] = {"", "KeenHearing"};
+			end
+		end
+	end
+
+	if modData[HA_CHANGED_TRAITS] ~= nil then
+		modData[HA_CHANGED_TRAITS][3] = playerID;
+	end
 end
 
--- Registrar eventos
-Events.OnHearingAidActivate.Add(onActivateHearingAid);
-Events.OnHearingAidDeactivate.Add(onDeactivateHearingAid);
-Events.OnHearingAidBatteryDead.Add(onBatteryDead);
-Events.OnFillInventoryObjectContextMenu.Add(createMenuHearingAid);
+local function onDeactivate(_, playerID, item, manager)
+	local player = getPlayer(playerID);
+	HearingAidManager.activeManagers[buildActiveIndex(player)] = nil;
+	local changedTraits = item:getModData()[HA_CHANGED_TRAITS];
+	if changedTraits ~= nil then
+		local removedTrait, addedTrait, activePlayerID = changedTraits[1], changedTraits[2], changedTraits[3];
+		local activePlayer = getPlayer(activePlayerID);
+		if player ~= activePlayer then
+			error("HearingAid for " .. buildActiveIndex(activePlayer) .. " deactivated on " .. buildActiveIndex(player));
+		end
+		local traits = activePlayer:getTraits();
+		if addedTrait ~= "" then
+			traits:remove(addedTrait);
+		end
+		if removedTrait ~= "" then
+			traits:add(removedTrait);
+		end
+	end
+end
 
--- Adicionar tooltip se o evento existir
-if Events.OnItemTooltip then
-    Events.OnItemTooltip.Add(addHearingAidTooltip);
+local function onBatteryDead(_, playerID, item, manager)
+	onDeactivate(_, playerID, item, manager);
+end
+
+local function initHearingAid()
+	for _, workingType in ipairs(HA_WORKING_FULL_TYPES) do
+		HearingAidInventoryBar.registerItem(workingType, HA_BATTERY_LEVEL, getTextOrNull("IGUI_invpanel_Remaining") or "Remaining: ");
+		HearingAidInventoryTooltip.registerItem(workingType, HA_BATTERY_LEVEL, getTextOrNull("IGUI_invpanel_Remaining") or "Remaining: ");
+	end
+
+	Events.OnFillInventoryObjectContextMenu.Add(createMenuHearingAid);
+end
+
+Events.OnGameStart.Add(initHearingAid);
+
+function HearingAidManager:activate()
+	local modData = self.item:getModData();
+	if not modData[HA_ACTIVE] then
+		modData[HA_ACTIVE] = true;
+		modData[HA_ACTIVE_TIME] = getGameTime():getWorldAgeHours();
+		onActivate(self.target, self.playerID, self.item, self);
+		self:addToUIManager();
+	end
+end
+
+function HearingAidManager:deactivate()
+	local modData = self.item:getModData();
+	if modData[HA_ACTIVE] == true then
+		modData[HA_ACTIVE] = false;
+		onDeactivate(self.target, self.playerID, self.item, self);
+		self:removeFromUIManager();
+	end
+end
+
+function HearingAidManager:doAction(action, item, item2, item3, item4, arg1, arg2, arg3, arg4)
+	local action = HearingAidAction:new(self:getPlayer(), self, action, item, item2, item3, item4, arg1, arg2, arg3, arg4);
+	ISTimedActionQueue.add(action);
+end
+
+function HearingAidManager:doActionMenu(context)
+	local isActive = self:isActive();
+	local isValid = isValid(self.target, self.playerID, self.item);
+	if not isActive and self:hasBattery() and self:hasPower() then
+		context:addOption(getTextOrNull("ContextMenu_Turn_On") or "Activate", self, HearingAidManager.doAction, "Activate");
+	elseif isActive then
+		context:addOption(getTextOrNull("ContextMenu_Turn_Off") or "Deactivate", self, HearingAidManager.doAction, "Deactivate");
+	end
+end
+
+local function predicateNotEmpty(item)
+	return item:getUsedDelta() > 0
+end
+
+function HearingAidManager:doBatteryMenu(context)
+	if self:hasBattery() then
+		context:addOption(getTextOrNull("ContextMenu_Remove_Battery") or "Remove Battery", self, HearingAidManager.doAction, "RemoveBattery");
+	else
+		if self:getPlayer():getInventory():containsTypeRecurse("Battery") then
+			local battery, batteryLevel;
+			local addedSubmenu = false;
+			local addBatteryOption = context:addOption(getTextOrNull("ContextMenu_AddBattery") or "Add Battery", self.item);
+			local subcontext = context:getNew(context);
+			context:addSubMenu(addBatteryOption, subcontext);
+			local batteries = self:getPlayer():getInventory():getAllTypeEvalRecurse("Battery", predicateNotEmpty);
+			for i = 0, batteries:size() - 1 do
+				battery = batteries:get(i);
+				batteryLevel = math.floor(battery:getUsedDelta() * 100);
+				if batteryLevel > 0 then
+					subcontext:addOption(battery:getName() .. " (" .. batteryLevel .. "%)", self, HearingAidManager.doAction, "AddBattery", battery);
+					addedSubmenu = true;
+				end
+			end
+			if not addedSubmenu then context:removeLastOption(); end;
+		end
+	end
+end
+
+function HearingAidManager:getPlayer()
+	return getPlayer(self.playerID);
+end
+
+function HearingAidManager:getItem()
+	return self.item;
+end
+
+function HearingAidManager:hasAlternatePower()
+	return self.item:getModData()[HA_HAS_ALTERNATE_POWER] or false;
+end
+
+function HearingAidManager:isActive()
+	return self.item:getModData()[HA_ACTIVE] == true;
+end
+
+function HearingAidManager:hasPower()
+	return self.item:getModData()[HA_BATTERY_LEVEL] > 0 or false;
+end
+
+function HearingAidManager:hasBattery()
+	return self.item:getModData()[HA_HAS_BATTERY] or false;
+end
+
+function HearingAidManager:addBattery(battery)
+	self.item:getModData()[HA_HAS_BATTERY] = true;
+	self.item:getModData()[HA_BATTERY_LEVEL] = battery:getUsedDelta();
+	self.item:setActualWeight(self.itemWeightWithBattery);
+	self.item:setCustomWeight(true);
+	self:getPlayer():getInventory():DoRemoveItem(battery);
+end
+
+function HearingAidManager:removeBattery()
+	local battery = InventoryItemFactory.CreateItem("Base.Battery");
+	battery:setUsedDelta(self.item:getModData()[HA_BATTERY_LEVEL]);
+	self:getPlayer():getInventory():AddItem(battery);
+	self.item:getModData()[HA_HAS_BATTERY] = false;
+	self.item:getModData()[HA_BATTERY_LEVEL] = 0;
+	self.item:setActualWeight(self.itemWeightNoBattery);
+	self.item:setCustomWeight(true);
+	self:deactivate();
+end
+
+function HearingAidManager:prerender()
+	--TODO: HUD battery meter?
+end
+
+function HearingAidManager:render()
+	--TODO: HUD battery meter?
+end
+
+LuaEventManager.AddEvent("UI_Update");
+
+function HearingAidManager:update()
+	local isValid = isValid(self.target, self.playerID, self.item);
+	if not isValid then self:deactivate(isValid == nil); return; end;
+	if self:isActive() then
+		local powerLevel = 1;
+		local batteryLevel = self.item:getModData()[HA_BATTERY_LEVEL] or 0;
+		local reductionThisFrame = 0;
+
+		local isPaused = UIManager.getSpeedControls() and UIManager.getSpeedControls():getCurrentGameSpeed() == 0;
+		if isPaused then
+			return
+		end
+		if batteryLevel > 0 then
+			local worldTime = getGameTime():getWorldAgeHours();
+			local activeTime = self.item:getModData()[HA_ACTIVE_TIME];
+			reductionThisFrame = powerLevel * ((worldTime - activeTime) / self.runTime);
+			batteryLevel = batteryLevel - reductionThisFrame;
+			if batteryLevel < 0 then batteryLevel = 0; end;
+			if batteryLevel == 0 then
+				self.item:getModData()[HA_ACTIVE] = false;
+				onBatteryDead(self.target, self.playerID, self.item, self);
+			end
+			self.item:getModData()[HA_BATTERY_LEVEL] = batteryLevel;
+			self.item:getModData()[HA_ACTIVE_TIME] = worldTime;
+		end
+	end
+
+	triggerEvent("UI_Update");
+end
+
+function HearingAidManager:initialize()
+	ISUIElement.initialise(self);
+	local modData = self.item:getModData();
+	local alreadyInitialized = modData[HA_INITIALIZED];
+	local shouldUpgrade = not modData[HA_BATTERY_MANAGER_VERSION] or modData[HA_BATTERY_MANAGER_VERSION] < versionNumber;
+	if not alreadyInitialized or shouldUpgrade then
+		local hadBattery = modData[HA_HAS_BATTERY];
+		local hasBattery = hadBattery or (alreadyInitialized and ZombRandBetween(0, 10) < 2);
+		modData[HA_BATTERY_MANAGER_VERSION] = versionNumber;
+		modData[HA_ACTIVE] = false;
+		modData[HA_HAS_BATTERY] = hasBattery;
+		modData[HA_BATTERY_LEVEL] = (hadBattery and 1) or (hasBattery and (ZombRandBetween(0, 10) / 10));
+		modData[HA_BATTERY_POWER_LEVEL] = 1;
+		modData[HA_INITIALIZED] = true;
+	end
+	if self:hasBattery() then
+		self.item:setActualWeight(self.itemWeightWithBattery);
+	else
+		self.item:setActualWeight(self.itemWeightNoBattery);
+	end
+	self.item:setCustomWeight(true);
+end
+
+function HearingAidManager:new(item)
+	local x, y, width, height = 0, 0, 0, 0;
+	local o = ISUIElement:new(x, y, width, height);
+	setmetatable(o, self);
+	self.__index = self;
+	for k, v in pairs(item) do o[k] = v; end;
+	o.target = o.target or {};
+	return o;
+end
+
+HearingAidManager.DismantleHearingAid = function(items, result, player)
+	for i=1, items:size() do
+		local item = items:get(i-1);
+		if isWorkingHearingAid(item) and item:getModData()[HA_HAS_BATTERY] == true then
+			local battery = InventoryItemFactory.CreateItem("Base.Battery");
+			battery:setUsedDelta(item:getModData()[HA_BATTERY_LEVEL]);
+			player:getInventory():AddItem(battery);
+			break
+		end
+	end
 end

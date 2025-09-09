@@ -1,4 +1,4 @@
-name=Train MetalWorking
+name=Train Carpentry
 poster=poster.png
-id=TrainMetalWork
-description=Use welding tools and metal materials to train metalworking skill. Process pure metals into scrap, then into unusable metal for XP.
+id=TrainCarp
+description=Use materials like wood and nails to train carpentry.

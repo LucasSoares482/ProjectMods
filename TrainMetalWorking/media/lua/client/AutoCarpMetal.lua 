@@ -1,0 +1,135 @@
+require "ISWorkMetal"
+
+AutoCarpMetal = {}
+AutoCarpMetal.mat_basenames = { "Base.Pipe", "Base.LeadPipe", "Base.MetalPipe", "Base.SheetMetal", "Base.SmallSheetMetal", "Base.TinCanEmpty", "Base.ScrapMetal" }
+AutoCarpMetal.tool_types = { "BlowTorch", "Hammer", "Screwdriver" }
+AutoCarpMetal.tools = {};
+AutoCarpMetal.metalitem = nil;
+AutoCarpMetal.metalwobj = nil;
+AutoCarpMetal.invmetal = {}
+AutoCarpMetal.floorcontainer = nil;
+AutoCarpMetal.dir = { IsoDirections.E, IsoDirections.W, IsoDirections.N, IsoDirections.S, IsoDirections.NE, IsoDirections.NW, IsoDirections.SE, IsoDirections.SW }
+
+function AutoCarpMetal:checkForItems(playr, context, worldobjects, test)
+	print("ACCFI_start: ", playr, context, test);
+	if test and ISWorldObjectContextMenu.Test then return true end
+	
+	local player = getPlayer();	
+	local inventory = player:getInventory();
+	local bags = ISInventoryPaneContextMenu.getContainers(player);
+	
+	for i=1, #AutoCarpMetal.tool_types do
+		for ii=0, bags:size()-1 do
+			local bag = bags:get(ii);
+			if i == 1 and #AutoCarpMetal.tools == 0 then
+				return
+			end			
+			local item = bag:getFirstTag(AutoCarpMetal.tool_types[i]);
+			if item ~= nil then
+				local container = item:getContainer()
+				if container ~= inventory then
+					local action = ISInventoryTransferAction:new(player, item, container, inventory, 60);
+					ISTimedActionQueue.add(action);
+				end
+				table.insert(AutoCarpMetal.tools, item);
+				break
+			end		
+		end
+	end
+	
+	for i=0, bags:size()-1 do
+		local bag = bags:get(i);
+		for ii=1, #AutoCarpMetal.mat_basenames do
+			local items = bag:getItemsFromFullType(AutoCarpMetal.mat_basenames[ii]);
+			if items:size() > 0 and bag:getType() ~= "floor" then
+				if AutoCarpMetal.metalitem == nil then 
+					AutoCarpMetal.metalitem = items:get(0);
+				end
+				table.insert(AutoCarpMetal.invmetal, items);
+			end
+		end
+		if AutoCarpMetal.floorcontainer == nil and bag:getType() == "floor" then 
+			AutoCarpMetal.floorcontainer = bag;
+		end
+	end
+
+	local square = player:getCurrentSquare();
+	local wobj = square:getWorldObjects();
+		
+	for ii=1, #AutoCarpMetal.mat_basenames do
+		for i=0, wobj:size()-1 do
+			local wob = wobj:get(i)
+			local item = wob:getItem();
+			if item:getFullType() == AutoCarpMetal.mat_basenames[ii] then	
+				AutoCarpMetal.metalitem = item;
+				AutoCarpMetal.metalwobj = wob;
+			end
+			if AutoCarpMetal.metalwobj ~= nil then break end
+		end
+		for i=1, #AutoCarpMetal.dir do
+			if AutoCarpMetal.metalwobj == nil then				
+				local adj_sq = square:getAdjacentSquare(AutoCarpMetal.dir[i])
+				local adj_wobj = adj_sq:getWorldObjects();
+				for i=0, adj_wobj:size()-1 do
+					local a_wob = adj_wobj:get(i)
+					local a_item = a_wob:getItem();
+					if a_item:getFullType() == AutoCarpMetal.mat_basenames[ii] then	
+						AutoCarpMetal.metalitem = a_item;
+						AutoCarpMetal.metalwobj = a_wob;
+						break
+					end
+				end				
+			else break end
+		end
+		if AutoCarpMetal.metalwobj ~= nil then break end
+	end
+	
+	if context == nil then AutoCarpMetal.trainMetalworking(); end	
+end
+
+function AutoCarpMetal:trainMetalworking()
+	if AutoCarpMetal.metalitem == nil then print("No materials! Returning..") return end
+	local player = getPlayer();
+	local inventory = player:getInventory();
+	
+	for i=1, #AutoCarpMetal.invmetal do		
+		local list = AutoCarpMetal.invmetal[i];
+		for ii=0, list:size()-1 do
+			local item = list:get(ii);
+			local container = item:getContainer()
+			if container ~= inventory then
+				local action = ISInventoryTransferAction:new(player, item, container, inventory, 60);
+				ISTimedActionQueue.add(action);
+			end
+			local action = ISDropItemAction:new(player, item, 10);
+			ISTimedActionQueue.add(action);
+		end
+	end
+
+	player:faceThisObject(AutoCarpMetal.metalwobj);	
+	if #AutoCarpMetal.tools > 2 then
+		local randtool = ZombRand(#AutoCarpMetal.tools-1)+2		
+		local action = ISEquipWeaponAction:new(player, AutoCarpMetal.tools[randtool], 50, true, false);		
+		ISTimedActionQueue.add(action);
+	elseif #AutoCarpMetal.tools == 2 then
+		local action = ISEquipWeaponAction:new(player, AutoCarpMetal.tools[2], 50, true, false);		
+		ISTimedActionQueue.add(action);
+	end
+	local action = ISEquipWeaponAction:new(player, AutoCarpMetal.tools[1], 50, false, false);		
+	ISTimedActionQueue.add(action);
+	local action = ISWorkMetal:new(AutoCarpMetal, AutoCarpMetal.metalitem, AutoCarpMetal.metalwobj, AutoCarpMetal.floorcontainer, player, 700, AutoCarpMetal.mat_basenames, AutoCarpMetal.tool_types, AutoCarpMetal.tools, worldobjs);
+	ISTimedActionQueue.add(action);
+	AutoCarpMetal.metalwobj = nil;
+	AutoCarpMetal.metalitem = nil;
+	AutoCarpMetal.invmetal = {}
+	AutoCarpMetal.tools = {}
+end
+
+function AutoCarpMetal:new(player)
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    o.player = player;
+    o.addAction = nil;
+    return o;
+end

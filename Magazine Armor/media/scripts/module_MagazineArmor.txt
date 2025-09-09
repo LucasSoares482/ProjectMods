@@ -1,0 +1,32 @@
+module MagazineArmor
+{
+	imports
+	{
+		Base,
+	}
+	
+	recipe Make Left Magazine Armor
+	{
+		Magazine/ComicBook/MagazineCrossword1/MagazineCrossword2/MagazineCrossword3/Notebook/HottieZ/Journal/Newspaper/TVMagazine/MagazineWordsearch1/MagazineWordsearch2/MagazineWordsearch3=1,
+	    DuctTape=2,
+		
+		Result 		: MagazineArmorL,
+		Sound 		: MagazineArmorCrafting,
+		Time 		: 300,
+		AnimNode 		: SawLog,
+		Category:Survivalist,
+	}
+	
+	recipe Make Right Magazine Armor
+	{
+		Magazine/ComicBook/MagazineCrossword1/MagazineCrossword2/MagazineCrossword3/HottieZ/Newspaper/TVMagazine/MagazineWordsearch1/MagazineWordsearch2/MagazineWordsearch3=1,
+	    DuctTape=2,
+		
+		Result 		: MagazineArmorR,
+		Sound 		: MagazineArmorCrafting,
+		Time 		: 300,
+		AnimNode 		: SawLog,
+		Category:Survivalist,
+	}
+
+}

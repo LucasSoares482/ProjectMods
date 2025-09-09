@@ -1,0 +1,33 @@
+module Base
+{		
+	item PaddedArmorL
+	{
+	Type = Clothing,
+	DisplayName = Left Padded Armor,
+	ClothingItem = PaddedArmorL,
+	BodyLocation = LeftArmArmor,
+	BloodLocation = Jacket,
+	Icon = PaddedArmorL,
+	ScratchDefense = 50,
+    BiteDefense = 50,
+    Weight = 0.3,
+    Insulation = 0,
+    WindResistance = 0,
+	}
+	
+	item PaddedArmorR
+	{
+	Type = Clothing,
+	DisplayName = Right Padded Armor,
+	ClothingItem = PaddedArmorR,
+	BodyLocation = RightArmArmor,
+	BloodLocation = Jacket,
+	Icon = PaddedArmorR,
+	ScratchDefense = 50,
+    BiteDefense = 50,
+    Weight = 0.3,
+    Insulation = 0,
+    WindResistance = 0,
+	}
+	
+}
