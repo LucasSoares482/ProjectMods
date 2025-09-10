@@ -4,10 +4,12 @@ module MagazineArmor
 	{
 		Base,
 	}
+
+	// ======== Original Magazine Armor Expanded
 	
 	recipe Make Left Magazine Armor
 	{
-		Magazine/ComicBook/MagazineCrossword1/MagazineCrossword2/MagazineCrossword3/Notebook/HottieZ/Journal/Newspaper/TVMagazine/MagazineWordsearch1/MagazineWordsearch2/MagazineWordsearch3=1,
+		Magazine/ComicBook/MagazineCrossword1/MagazineCrossword2/MagazineCrossword3/Notebook/HottieZ/Journal/Newspaper/TVMagazine/MagazineWordsearch1/MagazineWordsearch2/MagazineWordsearch3/FishingMag1/FishingMag2/ElectronicsMag1/ElectronicsMag2/ElectronicsMag3/ElectronicsMag5/EngineerMagazine1/EngineerMagazine2/CookingMag1/CookingMag2/RadioMag1/RadioMag2/RadioMag3/ElectronicsMag4/MechanicMag2/MechanicMag3/MechanicMag1/FarmingMag1/HerbalistMag/HuntingMag1/HuntingMag2/HuntingMag3/MetalworkMag1/MetalworkMag2/MetalworkMag3/MetalworkMag4/SmithingMag1/SmithingMag2/SmithingMag3/SmithingMag4=1,
 	    DuctTape=2,
 		
 		Result 		: MagazineArmorL,
@@ -19,7 +21,7 @@ module MagazineArmor
 	
 	recipe Make Right Magazine Armor
 	{
-		Magazine/ComicBook/MagazineCrossword1/MagazineCrossword2/MagazineCrossword3/HottieZ/Newspaper/TVMagazine/MagazineWordsearch1/MagazineWordsearch2/MagazineWordsearch3=1,
+		Magazine/ComicBook/MagazineCrossword1/MagazineCrossword2/MagazineCrossword3/Notebook/HottieZ/Journal/Newspaper/TVMagazine/MagazineWordsearch1/MagazineWordsearch2/MagazineWordsearch3/FishingMag1/FishingMag2/ElectronicsMag1/ElectronicsMag2/ElectronicsMag3/ElectronicsMag5/EngineerMagazine1/EngineerMagazine2/CookingMag1/CookingMag2/RadioMag1/RadioMag2/RadioMag3/ElectronicsMag4/MechanicMag2/MechanicMag3/MechanicMag1/FarmingMag1/HerbalistMag/HuntingMag1/HuntingMag2/HuntingMag3/MetalworkMag1/MetalworkMag2/MetalworkMag3/MetalworkMag4/SmithingMag1/SmithingMag2/SmithingMag3/SmithingMag4=1,
 	    DuctTape=2,
 		
 		Result 		: MagazineArmorR,
@@ -27,6 +29,32 @@ module MagazineArmor
 		Time 		: 300,
 		AnimNode 		: SawLog,
 		Category:Survivalist,
+	}
+
+	// ======== Paper Magazine Armor
+
+	recipe Make Left Paper Armor
+	{
+		Doodle/SheetPaper2=15,
+	    DuctTape=2,
+		
+		Result 		: MagazineArmorL,
+		Sound 		: MagazineArmorCrafting,
+		Time 		: 300,
+		AnimNode 		: RipSheets,
+        Category:Survivalist,
+	}
+	
+	recipe Make Right Paper Armor
+	{
+		Doodle/SheetPaper2=15,
+	    DuctTape=2,
+		
+		Result 		: MagazineArmorR,
+		Sound 		: MagazineArmorCrafting,
+		Time 		: 300,
+		AnimNode 		: RipSheets,
+        Category:Survivalist,
 	}
 
 }

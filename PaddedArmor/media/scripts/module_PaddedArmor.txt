@@ -5,7 +5,7 @@ module PaddedArmor
 		Base,
 	}
 
-	// ========= Original Fabric Padded Ermor Expanded
+	// ========= Original Fabric Padded Armor Expanded
 
 	recipe Make Left Padded Armor
 	{
@@ -65,10 +65,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorL=2,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 300,
+		Time 		: 100,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=1,		
+		SkillRequired:Tailoring=1,
 	}
 	
 	recipe Make Right Sewn Padded Armor
@@ -79,10 +79,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorR=2,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 300,
+		Time 		: 100,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=1,		
+		SkillRequired:Tailoring=1,
 	}
 
 	recipe Make Left Sewn Clothes Armor
@@ -93,10 +93,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorL=2,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 600,
+		Time 		: 200,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=1,		
+		SkillRequired:Tailoring=1,
 	}
 	
 	recipe Make Right Sewn Clothes Armor
@@ -107,10 +107,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorR=2,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 600,
+		Time 		: 200,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=1,		
+		SkillRequired:Tailoring=1,
 	}
 
 	// ========= Mended Padded Armor for Tailoring
@@ -121,10 +121,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorL,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 150,
+		Time 		: 400,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=2,		
+		SkillRequired:Tailoring=2,
 	}
 	
 	recipe Make Right Mended Padded Armor
@@ -133,10 +133,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorR,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 150,
+		Time 		: 400,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=2,		
+		SkillRequired:Tailoring=2,
 	}
 
 	recipe Make Left Mended Clothes Armor
@@ -145,10 +145,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorL,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 300,
+		Time 		: 600,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=2,		
+		SkillRequired:Tailoring=2,
 	}
 	
 	recipe Make Right Mended Clothes Armor
@@ -157,10 +157,10 @@ module PaddedArmor
 		
 		Result 		: PaddedArmorR,
 		Sound 		: PaddedArmorCrafting,
-		Time 		: 300,
+		Time 		: 600,
 		AnimNode 		: SawLog,
         Category:Tailoring,
-		SkillRequired:Tailoring=2,		
+		SkillRequired:Tailoring=2,
 	}
 
 }
