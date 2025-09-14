@@ -31,30 +31,4 @@ module MagazineArmor
 		Category:Survivalist,
 	}
 
-	// ======== Paper Magazine Armor
-
-	recipe Make Left Paper Armor
-	{
-		Doodle/SheetPaper2=15,
-	    DuctTape=2,
-		
-		Result 		: MagazineArmorL,
-		Sound 		: MagazineArmorCrafting,
-		Time 		: 300,
-		AnimNode 		: RipSheets,
-        Category:Survivalist,
-	}
-	
-	recipe Make Right Paper Armor
-	{
-		Doodle/SheetPaper2=15,
-	    DuctTape=2,
-		
-		Result 		: MagazineArmorR,
-		Sound 		: MagazineArmorCrafting,
-		Time 		: 300,
-		AnimNode 		: RipSheets,
-        Category:Survivalist,
-	}
-
 }
