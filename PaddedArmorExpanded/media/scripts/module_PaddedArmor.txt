@@ -14,7 +14,7 @@ module PaddedArmor
 		Sound 		: PaddedArmorCrafting,
 		Time 		: 200,
 		AnimNode 		: SawLog,
-        Category:Survivalist,		
+    	Category:Tailoring,		
 	}
 	
 	recipe Make Right Padded Armor
@@ -26,7 +26,7 @@ module PaddedArmor
 		Sound 		: PaddedArmorCrafting,
 		Time 		: 200,
 		AnimNode 		: SawLog,
-        Category:Survivalist,		
+    	Category:Tailoring,		
 	}
 
 	recipe Make Left Clothes Armor
@@ -38,7 +38,7 @@ module PaddedArmor
 		Sound 		: PaddedArmorCrafting,
 		Time 		: 400,
 		AnimNode 		: SawLog,
-        Category:Survivalist,		
+    	Category:Tailoring,		
 	}
 	
 	recipe Make Right Clothes Armor
@@ -50,7 +50,7 @@ module PaddedArmor
 		Sound 		: PaddedArmorCrafting,
 		Time 		: 400,
 		AnimNode 		: SawLog,
-        Category:Survivalist,		
+        Category:Tailoring,		
 	}
 
 }
