@@ -8,7 +8,7 @@ module PaddedArmor
 	recipe Make Left Padded Armor
 	{
 	    RippedSheets/RippedSheetsDirty/DenimStrips/DenimStripsDirty/LeatherStrips/LeatherStripsDirty=5,
-		DuctTape/Woodglue/Twine/LeatherStrips/LeatherStripsDirty/Glue/Scotchtape=1,
+		DuctTape=1,
 		
 		Result 		: PaddedArmorL,
 		Sound 		: PaddedArmorCrafting,
@@ -20,37 +20,13 @@ module PaddedArmor
 	recipe Make Right Padded Armor
 	{
 	    RippedSheets/RippedSheetsDirty/DenimStrips/DenimStripsDirty/LeatherStrips/LeatherStripsDirty=5,
-		DuctTape/Woodglue/Twine/LeatherStrips/LeatherStripsDirty/Glue/Scotchtape=1,
+		DuctTape=1,
 		
 		Result 		: PaddedArmorR,
 		Sound 		: PaddedArmorCrafting,
 		Time 		: 200,
 		AnimNode 		: SawLog,
     	Category:Tailoring,		
-	}
-
-	recipe Make Left Clothes Armor
-	{
-	    [Recipe.GetItemTypes.RipClothing_Cotton]/[Recipe.GetItemTypes.RipClothing_Leather]/[Recipe.GetItemTypes.RipClothing_Denim],
-		DuctTape/Woodglue/Twine/LeatherStrips/LeatherStripsDirty/Glue/Scotchtape=1,
-		
-		Result 		: PaddedArmorL,
-		Sound 		: PaddedArmorCrafting,
-		Time 		: 400,
-		AnimNode 		: SawLog,
-    	Category:Tailoring,		
-	}
-	
-	recipe Make Right Clothes Armor
-	{
-	    [Recipe.GetItemTypes.RipClothing_Cotton]/[Recipe.GetItemTypes.RipClothing_Leather]/[Recipe.GetItemTypes.RipClothing_Denim],
-		DuctTape/Woodglue/Twine/LeatherStrips/LeatherStripsDirty/Glue/Scotchtape=1,
-		
-		Result 		: PaddedArmorR,
-		Sound 		: PaddedArmorCrafting,
-		Time 		: 400,
-		AnimNode 		: SawLog,
-        Category:Tailoring,		
 	}
 
 }
