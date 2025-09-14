@@ -1,0 +1,59 @@
+module PaddedArmor
+{
+	imports
+	{
+		Base,
+	}
+
+	recipe Make Left Padded Armor
+	{
+	    RippedSheets/RippedSheetsDirty/DenimStrips/DenimStripsDirty/LeatherStrips/LeatherStripsDirty=5,
+	    DuctTape/LeatherStrips/LeatherStripsDirty=2,
+		DuctTape=1,
+		
+		Result 		: PaddedArmorL,
+		Sound 		: PaddedArmorCrafting,
+		Time 		: 200,
+		AnimNode 		: SawLog,
+        Category:Survivalist,		
+	}
+	
+	recipe Make Right Padded Armor
+	{
+	    RippedSheets/RippedSheetsDirty/DenimStrips/DenimStripsDirty/LeatherStrips/LeatherStripsDirty=5,
+	    DuctTape/LeatherStrips/LeatherStripsDirty=2,
+		DuctTape=1,
+		
+		Result 		: PaddedArmorR,
+		Sound 		: PaddedArmorCrafting,
+		Time 		: 200,
+		AnimNode 		: SawLog,
+        Category:Survivalist,		
+	}
+
+	recipe Make Left Clothes Armor
+	{
+	    RippedSheets/RippedSheetsDirty/DenimStrips/DenimStripsDirty/LeatherStrips/LeatherStripsDirty=5,
+	    DuctTape/LeatherStrips/LeatherStripsDirty=2,
+		DuctTape=1,
+		
+		Result 		: PaddedArmorL,
+		Sound 		: PaddedArmorCrafting,
+		Time 		: 200,
+		AnimNode 		: SawLog,
+        Category:Survivalist,		
+	}
+	
+	recipe Make Right Clothes Armor
+	{
+	    [Recipe.GetItemTypes.RipClothing_Cotton]/[Recipe.GetItemTypes.RipClothing_Leather]/[Recipe.GetItemTypes.RipClothing_Denim],
+		DuctTape=1,
+		
+		Result 		: PaddedArmorR,
+		Sound 		: PaddedArmorCrafting,
+		Time 		: 200,
+		AnimNode 		: SawLog,
+        Category:Survivalist,		
+	}
+
+}
